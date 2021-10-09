@@ -1,0 +1,332 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Scientific Blog{% endblock title %}
+
+{% block style %}
+<style>
+    .btn-sm-extra {
+        border-radius: 1.2rem;
+    }
+
+    .text-small-c {
+        font-size: 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .ha {
+        width: 20px;
+    }
+
+    .gz {
+        height: 20px;
+    }
+
+    .gx {
+        border-radius: 4px;
+    }
+
+    .author-name {
+        margin-left: 10px;
+        color: #292929;
+        font: 13px sohne;
+        font-family: Helvetica, sans-serif;
+    }
+</style>
+{% endblock style %}
+{% block content %}
+
+<hr class="dropdown-divider">
+<header class="py-5 bg-light border-bottom mb-4">
+    <div class="container">
+        <div class="text-center my-5">
+            <h1 class="fw-bolder">Welcome to Blog Home!</h1>
+            <p class="lead mb-0">This is a Scientific Blog Application</p>
+        </div>
+    </div>
+</header>
+<hr class="dropdown-divider">
+<div class="container">
+    <div class="row">
+        {% if request.user.is_authenticated %}
+            <!-- Blog entries-->
+            <div class="col-lg-8">
+                {% if subscribed_categories %}
+                    {% if latest_post %}
+                        <!-- Featured blog post-->
+                        <div class="card mb-4">
+                            <a href="{% url 'post:post_details' latest_post.slug %}">
+                                <img class="card-img-top" src="{{ latest_post.thumbnail.url }}"
+                                    alt="{{ latest_post.post_title }}" />
+                            </a>
+                            <div class="card-body">
+                                <div class="small text-muted">{{ latest_post.created|naturaltime }}</div>
+                                <h2 class="card-title">{{ latest_post.post_title }}</h2>
+                                <p class="card-text">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Reiciendis aliquid
+                                    atque, nulla? Quos cum ex quis soluta, a laboriosam. Dicta expedita corporis animi vero
+                                    voluptate voluptatibus possimus, veniam magni quis!</p>
+                                <a class="btn btn-primary" href="{% url 'post:post_details' latest_post.slug %}">Read more →</a>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <!-- Nested row for non-featured blog posts-->
+                    <div class="row">
+                        {% if posts %}
+                            {% for post in posts %}
+                                {% if not post == latest_post %}
+                                    <div class="card mb-3" style="max-width: 750px;">
+                                        <div class="row g-0">
+                                            <div class="col-md-4">
+                                                <a href="{% url 'post:post_details' post.slug %}">
+                                                    <img src="{{ post.thumbnail.url }}" class="img-fluid rounded-start"
+                                                    alt="{{ post.post_title }}">
+                                                </a>
+                                            </div>
+                                            <div class="col-md-8">
+                                                <div class="card-body">
+                                                    <p>
+                                                        <img src="{{ post.user.image.url }}" alt="" class="gx ha gz">
+                                                        <a href="{% url 'account:user_profile' post.user.account_slug %}" class="author-name"
+                                                        data-bs-toggle="popover"
+                                                        data-bs-trigger="hover focus"
+                                                        title="{{ post.user.name }}"
+                                                        data-bs-content="{{ post.user.headline }}"
+                                                        >
+                                                            {{ post.user.name }}
+                                                        </a>
+                                                    </p>
+                                                    <a href="{% url 'post:post_details' post.slug %}" class="text-decoration-none text-black">
+                                                        <h5 class="card-title">{{ post.post_title }}</h5>
+                                                    </a>
+                                                    <p class="card-text">
+                                                        <i class="bi bi-eye-fill"></i> {{ post.click_count }} &nbsp;&nbsp;&nbsp;&nbsp; <i class="bi bi-heart-fill"></i> {{post.liked_blog.count}} &nbsp;&nbsp;&nbsp;&nbsp; <i class="bi bi-chat-left-text-fill"></i> {{ post.post_comment.all|length }}
+                                                    </p>
+                                                    <p class="card-text">
+                                                        <small class="text-muted">{{ post.created | naturaltime }}</small>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                        <h2>No Posts</h2>
+                        {% endif %}
+                    </div>
+                    {% if posts.paginator.num_pages > 1 %}
+                        <!-- Pagination-->
+                        <nav aria-label="Page navigation example">
+                            <ul class="pagination justify-content-center">
+                                {% if posts.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ posts.previous_page_number }}">Previous</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="">Previous</a>
+                                    </li>
+                                {% endif %}
+                                <span class="current">
+                                    <a class="page-link">
+                                        Page {{ posts.number }} of {{ posts.paginator.num_pages }}
+                                    </a>
+                                </span>
+                                {% if posts.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ posts.next_page_number }}">Next</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="">Next</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <h2>Please Subscribe one or more Categories to see posts</h2>
+                    <hr class="dropdown-divider">
+                    {% for category in all_categories %}
+                        <a href="{% url 'post:category_based_list' category.slug %}" class="btn btn-outline-success btn-sm m-1">{{ category.name }}</a>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        {% else %}
+            <!-- Blog entries-->
+            <div class="col-lg-8">
+                {% if latest_post %}
+                    <!-- Featured blog post-->
+                    <div class="card mb-4">
+                        <a href="{% url 'post:post_details' latest_post.slug %}">
+                            <img class="card-img-top" src="{{ latest_post.thumbnail.url }}"
+                                alt="{{ latest_post.post_title }}" />
+                        </a>
+                        <div class="card-body">
+                            <div class="small text-muted">{{ latest_post.created|naturaltime }}</div>
+                            <h2 class="card-title">{{ latest_post.post_title }}</h2>
+                            <p class="card-text">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Reiciendis aliquid
+                                atque, nulla? Quos cum ex quis soluta, a laboriosam. Dicta expedita corporis animi vero
+                                voluptate voluptatibus possimus, veniam magni quis!</p>
+                            <a class="btn btn-primary" href="{% url 'post:post_details' latest_post.slug %}">Read more →</a>
+                        </div>
+                    </div>
+                {% endif %}
+                <!-- Nested row for non-featured blog posts-->
+                <div class="row">
+                    {% if posts %}
+                        {% for post in posts %}
+                            {% if not post == latest_post %}
+                                <div class="card mb-3" style="max-width: 750px;">
+                                    <div class="row g-0">
+                                        <div class="col-md-4">
+                                            <a href="{% url 'post:post_details' post.slug %}">
+                                                <img src="{{ post.thumbnail.url }}" class="img-fluid rounded-start"
+                                                alt="{{ post.post_title }}">
+                                            </a>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <div class="card-body">
+                                                <p>
+                                                    <img src="{{ post.user.image.url }}" alt="" class="gx ha gz">
+                                                    <a href="{% url 'account:user_profile' post.user.account_slug %}" class="author-name"
+                                                    data-bs-toggle="popover"
+                                                    data-bs-trigger="hover focus"
+                                                    title="{{ post.user.name }}"
+                                                    data-bs-content="{{ post.user.headline }}"
+                                                    >
+                                                        {{ post.user.name }}
+                                                    </a>
+                                                </p>
+                                                <a href="{% url 'post:post_details' post.slug %}" class="text-decoration-none text-black">
+                                                    <h5 class="card-title">{{ post.post_title }}</h5>
+                                                </a>
+                                                <p class="card-text">
+                                                    <i class="bi bi-eye-fill"></i> {{ post.click_count }} &nbsp;&nbsp;&nbsp;&nbsp; <i class="bi bi-heart-fill"></i> {{post.liked_blog.count}} &nbsp;&nbsp;&nbsp;&nbsp; <i class="bi bi-chat-left-text-fill"></i> {{ post.post_comment.all|length }}
+                                                </p>
+                                                <p class="card-text">
+                                                    <small class="text-muted">{{ post.created | naturaltime }}</small>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                    <h2>No Posts</h2>
+                    {% endif %}
+                </div>
+                {% if posts.paginator.num_pages > 1 %}
+                    <!-- Pagination-->
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination justify-content-center">
+                            {% if posts.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ posts.previous_page_number }}">Previous</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="">Previous</a>
+                                </li>
+                            {% endif %}
+                            <span class="current">
+                                <a class="page-link">
+                                    Page {{ posts.number }} of {{ posts.paginator.num_pages }}
+                                </a>
+                            </span>
+                            {% if posts.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ posts.next_page_number }}">Next</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="">Next</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            </div>
+        {% endif %}
+        <!-- Side widgets-->
+        <div class="col-lg-4">
+            <!-- Search widget-->
+            <div class="card mb-4">
+                <div class="card-header">Search</div>
+                <div class="card-body">
+                    <div class="input-group">
+                        <input class="form-control" type="text" placeholder="Enter search term..."
+                            aria-label="Enter search term..." aria-describedby="button-search" />
+                        <button class="btn btn-primary" id="button-search" type="button">Go!</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Categories widget-->
+            <div class="card mb-4">
+                <div class="card-header">My Categories {% if request.user.is_authenticated %} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="{% url 'post:category_list' %}" class="text-decoration-none mx-3">All Categories</a> {% endif %} </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% if not request.user.is_authenticated %}
+                            {% for category in all_categories %}
+                                <div class="col">
+                                    <a href="{% url 'post:category_based_list' category.slug %}"
+                                        class="btn btn-success btn-sm-extra text-small-c btn-sm m-1 text-uppercase">{{ category.name }}</a>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            {% for subscribed_category in subscribed_categories %}  
+                                <div class="col">
+                                    <a href="{% url 'post:category_based_list' subscribed_category.subscribed_category.slug %}"
+                                        class="btn btn-success btn-sm-extra text-small-c btn-sm m-1 text-uppercase">{{ subscribed_category.subscribed_category.name }}</a>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <!-- Side widget-->
+            <div class="card mb-4">
+                <div class="card-header">
+                    Top Viewed Post
+                </div>
+                {% for top_post in top_6_read_post %}
+                    <a href="{% url 'post:post_details' top_post.slug %}" class="text-decoration-none text-black">
+                        <div class="card my-2" style="max-width: 540px;">
+                            <div class="row g-0">
+                                <div class="col-md-4">
+                                    <img src="{{ top_post.thumbnail.url }}" class="img-fluid rounded-start" alt="{{ top_post.post_title }}">
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ top_post.post_title }}</h5>
+                                        
+                                        <p class="card-text"><small class="text-muted">{{ top_post.created|naturaltime }}</small></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+<footer class="py-5 bg-dark">
+    <div class="container">
+        <p class="m-0 text-center text-white">Copyright &copy; Your Website 2021</p>
+    </div>
+</footer>
+{% endblock content %}
+
+{% block script %}
+    <script>
+        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+        var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+            return new bootstrap.Popover(popoverTriggerEl)
+        })
+    </script>
+{% endblock script %}

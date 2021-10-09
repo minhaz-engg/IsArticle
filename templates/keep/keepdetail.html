@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %} {{ keep.title }}{% endblock title %}
+{% block content %}
+    <div class="container my-3 font-monospace">
+        <h2 class="display-6 ">{{ keep.title }}</h2>
+        <p class="fst-italic">{{ keep.created }}</p>
+        <span class="d-flex">
+            <a href="{% url 'keep:keep_update' keep.pk %}" class="btn btn-warning btn-sm">Edit</a> &nbsp;
+            <a href="{% url 'keep:keep_delete' keep.pk %}" class="btn btn-danger btn-sm">Delete</a>
+        </span>
+        <p class="">
+            {{ keep.detail|linebreaks }}
+        </p>
+    </div>
+{% endblock content %}

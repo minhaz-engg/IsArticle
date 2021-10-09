@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Register Account{% endblock title %}
+{% block content %}
+    <div class="container my-3 font-monospace">
+        <center>
+            <p class="fs-2">
+                Join Our Science Plateform
+            </p>
+        </center>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form|crispy }}
+
+            <div class="d-grid gap-2 col-6 mx-auto">
+                <button type="submit" class="btn btn-primary">REGISTER</button>
+            </div>
+
+            <div class="flex-column justify-content-center mx-auto pb-3">
+                <div class="text-center mt-3">
+                    <a href="{% url "account:login" %}" class="btn btn-outline-info btn-sm">
+                        Already a Member?
+                    </a>
+                </div>
+                
+            </div>
+        </form>
+    </div>
+    <footer class="py-5 bg-dark">
+        <div class="container">
+            <p class="m-0 text-center text-white">Copyright &copy; Your Website 2021</p>
+        </div>
+    </footer>
+    
+{% endblock content %}

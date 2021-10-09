@@ -1,0 +1,349 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block favicon %}
+    <link rel="icon" type="image/x-icon" href="{{ profile.image.url }}" />
+{% endblock favicon %}
+{% block style %}
+<style>
+    body {
+        background: -webkit-linear-gradient(left, #3931af, #00c6ff);
+    }
+
+    .emp-profile {
+        padding: 3%;
+        margin-top: 3%;
+        margin-bottom: 3%;
+        border-radius: 0.5rem;
+        background: #fff;
+    }
+
+    .profile-img {
+        text-align: center;
+    }
+
+    .profile-img img {
+        width: 180px;
+        height: 180px;
+        border: 2px solid green;
+    }
+
+
+    .profile-head h5 {
+        color: #333;
+    }
+
+    .profile-head h6 {
+        color: #532b09;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .profile-edit-btn {
+        border: none;
+        border-radius: 1.5rem;
+        width: 70%;
+        padding: 2%;
+        font-weight: 600;
+        color: #6c757d;
+        cursor: pointer;
+    }
+
+    .proile-rating {
+        font-size: 15px;
+        color: #6e4c01;
+        margin-top: 5%;
+    }
+
+    .proile-rating span {
+        color: #495057;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .profile-head .nav-tabs {
+        margin-bottom: 5%;
+    }
+
+    .profile-head .nav-tabs .nav-link {
+        font-weight: 600;
+        border: none;
+    }
+
+    .profile-head .nav-tabs .nav-link.active {
+        border: none;
+        border-bottom: 2px solid #0062cc;
+    }
+
+    .profile-work {
+        padding: 14%;
+        margin-top: -15%;
+    }
+
+    .profile-work p {
+        font-size: 12px;
+        color: #818182;
+        font-weight: 600;
+        margin-top: 10%;
+    }
+
+    .profile-work a {
+        text-decoration: none;
+        color: #495057;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .profile-work ul {
+        list-style: none;
+    }
+
+    .profile-tab label {
+        font-weight: 600;
+    }
+
+    .profile-tab p {
+        font-weight: 400;
+        color: #03080e;
+    }
+</style>
+{% endblock style %}
+{% block title %} {{ profile.name }}{% endblock title %}
+{% block content %}
+
+
+
+<div class="container emp-profile">
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="profile-img">
+                <img src="{{ profile.image.url }}" alt="{{ profile.name }}" />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="profile-head my-2">
+                <h5>
+                    {{ profile.name }} {% if profile.is_author %}<span class="badge bg-success">author</span>{% else %}<span class="badge bg-secondary">user</span>{% endif %}
+                </h5>
+                <p>
+                    {% if profile.headline %}
+                        {{ profile.headline }}
+                    {% else %}
+                        ...
+                    {% endif %}
+                </p>
+                <h6>{{ followers_count }} follower &nbsp;&nbsp; {{ following_count }} following</h6>
+                    <p class="proile-rating">
+                        {% if request.user.is_authenticated %}
+                            {% if request.user.is_author and request.user == profile %}
+                                <a href="{% url 'post:create_post' %}" class="btn btn-success btn-sm my-1">Publish</a>
+                                <a href="{% url 'post:my_blogs' %}" class="btn btn-primary btn-sm my-1">Timeline</a>
+                            {% endif %}
+                            {% if not request.user.is_author and request.user == profile %}
+                                <a href="{% url 'account:apply_author' %}" class="btn btn-success btn-sm my-1">Apply as Author</a>
+                            {% endif %}
+                            {% if request.user == profile %}
+                                <a href="{% url 'keep:keep_list' %}" class="btn btn-info btn-sm my-1">My Note <i class="bi bi-stickies-fill"></i></a>
+                                <a href="{% url 'post:bookmark_list' %}" class="btn btn-secondary btn-sm my-1">My Bookmarks <i class="bi bi-bookmarks-fill"></i></a>
+                            {% else %}
+                                <button class="btn {% if already_followed %} btn-secondary {% else %} btn-primary {% endif %} btn-sm" type="button" id="follow" name="{{ profile.pk }}">
+                                    {% if already_followed %} Followed {% else %} Follow {% endif %}
+                                </button>
+                            {% endif %}
+                        {% endif %}
+                    </p>
+                    
+
+                <p class="proile-rating">
+                    <span><img src="{{ profile.country.flag }}" alt=""> {{ profile.country.name }}</span>
+                </p>
+                {% comment %} tab {% endcomment %}
+            </div>
+        </div>
+        
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            {% if profile == request.user %}
+                <p>profile completion</p>
+                <div class="progress">
+                    <div class="progress-bar
+                                {% if profile_completion == 100 %}
+                                bg-success
+                                {% elif profile_completion < 100 and profile_completion >= 70 %}
+                                bg-info
+                                {% elif profile_completion < 70 and profile_completion >= 65 %}
+                                bg-warning
+                                {% elif profile_completion < 65 %}
+                                bg-danger
+                                {% endif %}" 
+                         role="progressbar"
+                         style="width: {{ profile_completion }}%;" 
+                         aria-valuenow="{{ profile_completion }}"
+                         aria-valuemin="0"
+                         aria-valuemax="100">
+                            {{ profile_completion }}%
+                    </div>
+                </div>
+                {% if profile_completion < 100 %}
+                    <p class="my-2">Your Profile is not Completed, Please <a href="{% url 'account:edit_profile' %}" class="btn btn-warning btn-sm">Complete your Profile</a></p>
+                {% else %}
+                    <a href="{% url 'account:edit_profile' %}" class="my-2 btn btn-secondary btn-sm">Update Your Profile</a>
+                {% endif %}
+            {% else %}
+                {% if profile.is_author %}
+                    <a href="{% url 'post:writters_posts' profile.account_slug %}" class="my-2 btn btn-secondary btn-sm">Articles</a>
+                {% endif %}
+            {% endif %}
+            <br>
+            {% if request.user == profile %}
+                <a href="{% url 'account:logout' %}" class="btn btn-outline-danger btn-sm my-3">Logout</a>
+            {% endif %}
+        </div>
+        
+        {% comment %} content {% endcomment %}
+
+        <div class="col-md-8 my-1">
+            <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="pills-info-tab" data-bs-toggle="pill" data-bs-target="#pills-info" type="button" role="tab" aria-controls="pills-info" aria-selected="true">Info</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pills-description-tab" data-bs-toggle="pill" data-bs-target="#pills-description" type="button" role="tab" aria-controls="pills-description" aria-selected="false">Description</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pills-education-tab" data-bs-toggle="pill" data-bs-target="#pills-education" type="button" role="tab" aria-controls="pills-education" aria-selected="false">Education</button>
+                </li>
+            </ul>
+            <div class="tab-content" id="pills-tabContent">
+                <div class="tab-pane fade show active" id="pills-info" role="tabpanel" aria-labelledby="pills-info-tab">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="fw-bolder">Name</label>
+                        </div>
+                        <div class="col-md-6">
+                            <p>{{ profile.name }}</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="fw-bolder">Email</label>
+                        </div>
+                        <div class="col-md-6">
+                            <p>{{ profile.email }}</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="fw-bolder">Joined</label>
+                        </div>
+                        <div class="col-md-6">
+                            <p>{{ profile.created }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="pills-description" role="tabpanel" aria-labelledby="pills-description-tab">
+                    <p>{{ profile.description|linebreaks }}</p>
+                </div>
+                <div class="tab-pane fade" id="pills-education" role="tabpanel" aria-labelledby="pills-education-tab">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        {% comment %} <a href="" class="btn btn-outline-info me-md-2">Add Education</a> {% endcomment %}
+                        
+                        {% if profile == request.user %}
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                                    Add Education
+                                </button>
+                                <a href="{% url 'account:institution_list' %}" class="btn btn-primary btn-sm" type="button">
+                                    Edit
+                                </a>
+                            </div>
+
+        
+                            <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form action="" method="post">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="staticBackdropLabel">Modal title</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                {% csrf_token %}
+                                                {{ education_form|crispy }}
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                <button type="Submit" class="btn btn-primary">Add</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                        {% endif %}
+
+
+                    </div>
+                    {% for education in educations %}
+                        <div class="card my-2">
+                            <div class="card-body">
+                                <h5>{{ education.name }}</h5>
+                                <p>{{ education.degree }}, {{ education.subject }}</p>
+                                <p class="fw-light">{{ education.start_year }} - {{ education.end_year }}</p>
+                                <p class="fw-normal">{{ education.description }}</p>
+                                
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            
+            </div>
+        </div>
+    </div>
+
+    
+</div>
+
+
+
+<footer class="py-5 bg-dark">
+    <div class="container">
+        <p class="m-0 text-center text-white">Copyright &copy; Your Website 2021</p>
+    </div>
+</footer>
+
+{% endblock content %}
+
+{% block script %}
+<script>
+    let follow_toggle_btn = document.getElementById("follow");
+    $('#follow').click(function () {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'account:follow_toggle' %}",
+            data: {
+                'pk': $(this).attr('name'),
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+            },
+            dataType: "json",
+            success: function (response) {
+                if (response.message == "followed"){
+                    follow_toggle_btn.classList.remove("btn-primary")
+                    follow_toggle_btn.classList.add("btn-secondary")
+                    follow_toggle_btn.innerText = "Followed"
+                } else if (response.message == "unfollowed"){
+                    follow_toggle_btn.classList.remove("btn-secondary")
+                    follow_toggle_btn.classList.add("btn-primary")
+                    follow_toggle_btn.innerText = "Follow"
+                }
+            },
+            error: function (rs,e){
+                alert(rs.responseText);
+            }
+        });
+    })
+</script>
+{% endblock script %}

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %} Education{% endblock title %}
+{% block content %}
+    <div class="container">
+        <h2>Education</h2>
+        <div class="dropdown-divider"></div>
+        {% for education in educations %}
+            <div class="card my-2">
+                <div class="card-body">
+                    <h5>{{ education.name }}</h5>
+                    <p>{{ education.degree }}, {{ education.subject }}</p>
+                    <p class="fw-light">{{ education.start_year }} - {{ education.end_year }}</p>
+                    <p class="fw-normal">{{ education.description }}</p>
+                    <a href="{% url 'account:institution_update' pk=education.id %}" class="btn btn-outline-secondary btn-sm">edit</a>
+                    <a href="{% url 'account:institution_delete' pk=education.pk %}" class="btn btn-outline-danger btn-sm">delete</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock content %}

@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block style %}
+<style>
+    .btn-sm-extra {
+        border-radius: 1.2rem;
+    }
+
+    .text-small-c {
+        font-size: 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .ha {
+        width: 20px;
+    }
+
+    .gz {
+        height: 20px;
+    }
+
+    .gx {
+        border-radius: 4px;
+    }
+
+    .author-name {
+        margin-left: 10px;
+        color: #292929;
+        font: 13px sohne;
+        font-family: Helvetica, sans-serif;
+    }
+</style>
+{% endblock style %}
+{% block title %} {{ request.user.name }}{% endblock title %}
+{% block content %}
+    <hr class="dropdown-divider">
+    <hr class="dropdown-divider">
+    <div class="container">
+        {% if posts %}
+        <center><h2>My Bookmarks</h2></center>
+        {% for post in posts %}
+            <div class="card mb-3 single-bookmark" name="{{ post.bookmarked_post.pk }}" style="max-width: 100%;">
+                <div class="row g-0">
+                    <div class="col-md-4">
+                        <a href="{% url 'post:post_details' post.bookmarked_post.slug %}">
+                            <img src="{{ post.bookmarked_post.thumbnail.url }}" class="img-fluid rounded-start"
+                                alt="{{ post.bookmarked_post.post_title }}">
+                        </a>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <div class="d-grid gap-2 d-md-flex justify-content-between">
+                                <p>
+                                    <img src="{{ post.bookmarked_post.user.image.url }}" alt="" class="gx ha gz">
+                                    <a href="{% url 'account:user_profile' post.bookmarked_post.user.account_slug %}" class="author-name"
+                                        data-bs-toggle="popover"
+                                        data-bs-trigger="hover focus"
+                                        title="{{ post.bookmarked_post.user.name }}"
+                                        data-bs-content="{{ post.bookmarked_post.user.headline }}"
+                                    >
+                                        {{ post.bookmarked_post.user.name }}
+                                    </a>
+                                </p>
+
+                                <button type="button" class="btn btn-secondary btn-sm" id="delete-bookmark-button" name="{{ post.bookmarked_post.pk }}">
+                                    <i class="bi bi-bookmark-check-fill"></i> Bookmarked
+                                </button>
+                                
+                            </div>
+
+                            <a href="{% url 'post:post_details' post.bookmarked_post.slug %}" class="text-decoration-none text-black">
+                                <h5 class="card-title">{{ post.bookmarked_post.post_title }}</h5>
+                            </a>
+                            
+                            <p class="card-text"><i class="bi bi-eye-fill"></i> {{ post.bookmarked_post.click_count }} &nbsp;&nbsp;&nbsp;&nbsp; <i class="bi bi-heart-fill"></i> {{post.bookmarked_post.liked_blog.count}} &nbsp;&nbsp;&nbsp;&nbsp; <i class="bi bi-chat-left-text-fill"></i> {{ post.bookmarked_post.post_comment.all|length }}</p>
+
+                            <p class="card-text">
+                                <small class="text-muted">{{ post.bookmarked_post.created | naturaltime }}</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        {% else %}
+            <center><h2 class="display-5">Currently You have no Bookmark</h2></center>
+        {% endif %}
+        <!-- Pagination-->
+        {% if posts.paginator.num_pages > 1 %}
+            <nav aria-label="Page navigation example">
+                <ul class="pagination justify-content-center">
+                    {% if posts.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ posts.previous_page_number }}">Previous</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="">Previous</a>
+                        </li>
+                    {% endif %}
+                    <span class="current">
+                        <a class="page-link">
+                            Page {{ posts.number }} of {{ posts.paginator.num_pages }}
+                        </a>
+                    </span>
+                    {% if posts.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ posts.next_page_number }}">Next</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="">Next</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+    <footer class="py-5 bg-dark">
+        <div class="container">
+            <p class="m-0 text-center text-white">Copyright &copy; Your Website 2021</p>
+        </div>
+    </footer>
+{% endblock content %}
+
+{% block script %}
+    <script>
+        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+        var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+            return new bootstrap.Popover(popoverTriggerEl)
+        })
+
+
+        $(document).on("click", "#delete-bookmark-button", function (e) {
+            e.preventDefault();
+            var bookmark_id = $(this).attr('name')
+            $.ajax({
+            type: "POST",
+            url: "{% url 'post:bookmark' %}",
+            data: {
+                'pk': $(this).attr('name'),
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            dataType: "json",
+            success: function (json) {
+                $('.single-bookmark[name="' + bookmark_id + '"]').remove();
+                console.log("removed")
+            },
+            error: function (xhr, errmsg, err) {},
+            });
+        });
+
+    </script>
+{% endblock script %}

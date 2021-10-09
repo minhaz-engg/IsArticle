@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Author Applications{% endblock title %}
+{% block content %}
+<div class="container">
+    <center>
+        <h2>All Applications</h2>
+    </center>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Name</th>
+                <th scope="col">Application</th>
+                <th scope="col">Accept</th>
+                <th scope="col">Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for application in application_list %}
+                {% if not application.user.is_author %}
+                    <tr>
+                        <th scope="row">{{ forloop.counter }}</th>
+                        <td><a href="{% url 'account:user_profile' slug=application.user.account_slug %}" class="text-decoration-none text-black fw-bolder">{{ application.user.name }}</a></td>
+                        <td><a href="{% url 'account:author_application_detail' application.pk %}" class="text-decoration-none text-black">Detail</a></td>
+                        <td><a href="{% url 'account:author_application_accept' application.pk %}" class="btn btn-success btn-sm">Accept</a></td>
+                        <td><a href="{% url 'account:author_application_delete' application.pk %}" class="btn btn-danger btn-sm">Delete</a></td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock content %}

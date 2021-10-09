@@ -1,0 +1,92 @@
+Scientific Blogging Website
+
+only use bootstrap, inline css, inline javascript
+
+django taggit https://django-taggit.readthedocs.io/en/latest/getting_started.html
+tag generation https://stackoverflow.com/questions/2661778/tag-generation-from-a-text-content
+django countries https://pypi.org/project/django-countries/
+
+
+
+------------database design------------
+
+
+---User--- (Custom User Model)
+-email
+-password
+-date_joined------
+-first_name-----
+-last_name-----
+-gender-----
+-birthday-----
+-country-----
+-description-----
+-photo------
+-is_author-----
+
+
+---EmailVerification---
+-email-----
+-url------
+-created-----
+
+
+
+
+---Tag---
+-title-----
+-slug-----
+-created-----
+
+
+---Category---
+-name-----
+-slug-----
+-is_active-----
+-created-----
+
+
+---Post---
+-user-----
+-title------
+-slug------
+-category-----
+-tag (many to many field with Tag)-----
+-content(in rich text editor!)-----
+-created-----
+-updated-----
+-is_active-----
+-click_count-----
+-read_time (thinking how to add)
+
+---Bookmark---
+-user-----
+-target_post-----
+-created-----
+
+---Like---
+-liked_post-----
+-liker_post-----
+-created-----
+
+
+---Report---
+-user-----
+-target_post-----
+-report_comment-----
+-created-----
+
+---Comment---
+-user-----
+-target_post-----
+-comment-----
+-created-----
+-updated-----
+
+
+---Note---
+-author-----
+-title-----
+-detail-----
+-created-----
+

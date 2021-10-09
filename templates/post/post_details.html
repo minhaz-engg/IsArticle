@@ -1,0 +1,481 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load humanize %}
+{% block title %} {{ post.post_title }}{% endblock title %}
+{% block style %}
+<style>
+    .btn-sm-extra {
+        border-radius: 1.2rem;
+    }
+
+    .text-small-c {
+        font-size: 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .ha {
+        width: 20px;
+    }
+
+    .gz {
+        height: 20px;
+    }
+
+    .gx {
+        border-radius: 4px;
+    }
+
+    .comment-author-img{
+        width: 40px;
+        height: 40px;
+        border-radius: 4px;
+        margin-top: 5px
+    }
+
+    .author-name {
+        margin-left: 5px;
+        color: #292929;
+        font: 13px sohne;
+        font-family: Helvetica, sans-serif;
+    }
+
+    .comment-text {
+        margin-top: -10px;
+    }
+</style>
+{% endblock style %}
+{% block content %}
+    <hr class="dropdown-divider">
+    <hr class="dropdown-divider">
+    <div class="container">
+        <div class="row">
+            <!-- Blog entries-->
+            <div class="col-lg-8">
+                <!-- Post content-->
+                <article>
+                    <!-- Post header-->
+                    <header class="mb-4">
+                        <!-- Post title-->
+                        <h1 class="fw-bolder mb-1">{{ post.post_title }}</h1> 
+                        {% if request.user.is_authenticated %}
+                            {% if post.user == request.user %}
+                                <a href="{% url 'post:edit_blog' post.pk %}" class="btn btn-warning btn-sm">
+                                    Update
+                                </a>
+                            {% else %}
+                                <div class="d-grid gap-2 d-flex justify-content-end my-2">
+                                    <button class="btn btn-info me-md-2" type="button" id="bookmark" name="{{ post.pk }}">
+                                        <i id="bookmark-icon" class="bi {% if bookmarked %}bi-bookmark-fill {% else %}bi-bookmark{% endif %}"></i>
+                                    </button>
+                                </div>
+
+
+                                <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                ...
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                <button type="button" class="btn btn-primary">Save changes</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                        <!-- Post meta content-->
+                        <div class="text-muted fst-italic mb-2">
+                            Posted on {{ post.created }} by 
+                            <img src="{{ post.user.image.url }}" alt="" class="gx ha gz">
+                            <a href="{% url 'account:user_profile' post.user.account_slug %}" class="author-name" data-bs-toggle="popover" data-bs-trigger="hover focus" title="{{ post.user.name }}" data-bs-content="{{ post.user.headline }}">
+                                {{ post.user.name }}
+                            </a>
+                        </div>
+                        <!-- Post categories-->
+                        <a class="badge bg-success text-decoration-none link-light" href="{% url 'post:category_based_list' post.category.slug %}">
+                            {{ post.category }}
+                        </a>
+                        <a class="badge bg-secondary text-decoration-none link-light" href="">
+                            Freebies
+                        </a>
+                    </header>
+                    <!-- Preview image figure-->
+                    <figure class="mb-4">
+                        <img class="img-fluid rounded" src="{{ post.thumbnail.url }}" alt="{{ post.post_title }}" />
+                    </figure>
+                </article>
+                <!-- Post content-->
+                <section class="my-4 container" id="safe-content">
+                    {{ post.post_content|safe }}
+                </section>
+                <section class="my-4 container">
+                    {% if request.user.is_authenticated %}
+                        <button type="button" class="btn btn-danger" id="like" name="{{ post.pk }}">
+                            <i id="like-icon" class="bi {% if liked %}bi-heart-fill {% else %}bi-heart{% endif %}"></i>
+                        </button>
+                    {% else %}
+                        
+                    {% endif %}
+                    <span class="d-flex my-3">
+                        <p class="fw-bolder">
+                            <span id="like-count">{{post.liked_blog.count}}</span> likes
+                        </p>
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        <p class="fw-bolder">
+                            {{ total_comments }} comments
+                        </p>
+                    </span>
+                </section>
+            </div>
+            <!-- Side widgets-->
+            <div class="col-lg-4">
+                <!-- Search widget-->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        Search
+                    </div>
+                    <div class="card-body">
+                        <div class="input-group">
+                            <input class="form-control" type="text" placeholder="Enter search term..." aria-label="Enter search term..." aria-describedby="button-search" />
+                            <button class="btn btn-primary" id="button-search" type="button">Go!</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Categories widget-->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        Tags
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for tag in post.tags.all %}
+                                <div class="col">
+                                    <a href="{% url 'post:tag_based_list' tag.slug %}" class="btn btn-success btn-sm-extra text-small-c btn-sm m-1 text-uppercase">
+                                        {{ tag }}
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <!-- Side widget-->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        Recommended Posts
+                    </div>
+                    {% for recommed_post in recommended_posts %}
+                        {% if not recommed_post == post %}
+                            <a href="{% url 'post:post_details' recommed_post.slug %}" class="text-decoration-none text-black">
+                                <div class="card my-2" style="max-width: 540px;">
+                                    <div class="row g-0">
+                                        <div class="col-md-4">
+                                            <img src="{{ recommed_post.thumbnail.url }}" class="img-fluid rounded-start" alt="{{ recommed_post.post_title }}">
+                                        </div>
+                                        <div class="col-md-8">
+                                            <div class="card-body">
+                                                <h5 class="card-title">{{ recommed_post.post_title }}</h5>
+                                                
+                                                <p class="card-text"><small class="text-muted">{{ recommed_post.created|naturaltime }}</small></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                
+                
+
+
+            </div>
+        </div>
+        <section class="mb-5">
+            <!-- Comments section-->
+            <div class="card bg-light" id="comment-part">
+                <div class="card-body">
+                    {% if request.user.is_authenticated %}
+                        <!-- Comment form-->
+                        <form method="post" class="mb-3">
+                            {% csrf_token %}
+                            {{ comment_form|crispy }}
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button class="btn btn-primary btn-sm" type="submit">
+                                    Comment
+                                </button>
+                            </div>
+                        </form>
+                    {% endif %}
+                    {% if comment_list %}
+                        <hr class="dropdown-divider">
+                        {% if not comment_list.has_previous %}
+                            {% for comment in comment_list %}
+                                <!-- Single comment-->
+                                <div class="d-flex my-3">
+                                    <div class="flex-shrink-0">
+                                        <img class="comment-author-img" src="{{ comment.user.image.url }}" alt="{{ comment.user.name }}" />
+                                    </div>
+                                    <div class="ms-3">
+                                        <span class="d-flex">
+                                            <a href="{% url 'account:user_profile' slug=comment.user.account_slug %}" class="fw-bolder text-black text-decoration-none">
+                                                {{ comment.user.name }}
+                                            </a>&nbsp;
+                                            <p class="fw-light">
+                                                {{ comment.created|naturaltime }}
+                                            </p>
+                                            {% if request.user.is_authenticated and request.user == comment.user %}
+                                                &nbsp; <a class="text-danger" href="{% url 'comment:delete_comment' pk=comment.pk %}"><i class="bi bi-trash mx-2"></i></a>
+                                            {% endif %}
+                                        </span>
+                                        <p class="comment-text">
+                                            {{ comment.comment }}
+                                        </p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            {% for comment in comments %}
+                                <!-- Single comment-->
+                                <div class="d-flex my-3" id="comment-parta-{{ comment.id }}">
+                                    <div class="flex-shrink-0">
+                                        <img class="comment-author-img" src="{{ comment.user.image.url }}" alt="{{ comment.user.name }}" />
+                                    </div>
+                                    <div class="ms-3">
+                                        <span class="d-flex">
+                                            <a href="{% url 'account:user_profile' slug=comment.user.account_slug %}" class="fw-bolder text-black text-decoration-none">
+                                                {{ comment.user.name }}
+                                            </a>&nbsp;
+                                            <p class="fw-light">
+                                                {{ comment.created|naturaltime }}
+                                            </p>
+                                            {% if request.user.is_authenticated and request.user == comment.user %}
+                                                &nbsp; <a class="text-danger" href="{% url 'comment:delete_comment' pk=comment.pk %}"><i class="bi bi-trash mx-2"></i></a>
+                                            {% endif %}
+                                        </span>
+                                        <p class="comment-text">
+                                            {{ comment.comment }}
+                                        </p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endif %}
+                    <!-- Pagination-->
+                    {% if comment_list.paginator.num_pages > 1 %}
+                        <nav aria-label="Page navigation example">
+                            <ul class="pagination justify-content-center">
+                                {% comment %} {% if comment_list.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ comment_list.previous_page_number }}">
+                                            Previous
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="">
+                                            Previous
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                <span class="current">
+                                    <a class="page-link">
+                                        Page {{ comment_list.number }} of {{ comment_list.paginator.num_pages }}
+                                    </a>
+                                </span> {% endcomment %}
+                                {% if comment_list.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ comment_list.next_page_number }}#comment-parta-{{ last_pagination_comment_id }}">
+                                            Load more Comments
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="">
+                                            Load more Comments
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                </div>
+                
+                {% comment %}
+                    <script>
+                        const formatDate = (dateString) => {
+                            const options = {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric"
+                            }
+                            return new Date(dateString).toLocaleDateString(undefined, options)
+                        }
+                        let previous_htmls = "";
+                        let comment_show = document.getElementById("comment-show");
+                        const loadCommentByPage = (page_num, total_page_number) => {
+                            $.ajax({
+                                type: "GET",
+                                url: `{% url 'comment:load_comment' pk=post.pk %}?page=${page_num}`,
+                                success: function (res) {
+                                    const comment_list = JSON.parse(res.data)
+                                    console.log(comment_list)
+                                    let displayCommentByPage = comment_list.map(function (comment, index) {
+                                        return `
+                                        <div class="d-flex my-3">
+                                            <div class="flex-shrink-0">
+                                                <img class="rounded-circle" src="https://dummyimage.com/50x50/ced4da/6c757d.jpg" alt="..." />
+                                            </div>
+                                            <div class="ms-3">
+                                                <span class="d-flex">
+                                                    <p class="fw-bolder">
+                                                        ${comment.fields.user}
+                                                    </p>
+                                                    &nbsp;
+                                                    <p class="fw-light">
+                                                        ${formatDate(comment.fields.created)}
+                                                        {{ comment.created|naturaltime }}
+                                                    </p>
+                                                </span>
+                                                <p class="comment-text">
+                                                    ${comment.fields.comment}
+                                                </p>
+                                                <hr class="divider w-50 center m-auto" />
+                                            </div>
+                                        </div>
+                                        `
+                                    });
+                                    displayCommentByPage = displayCommentByPage.join("")
+                                    comment_show.innerHTML = comment_show.innerHTML + displayCommentByPage;
+                                    load_more_button = "<button id='load-more-btn'>load more comments</button>"
+                                    if (page_num < total_page_number) {
+                                        comment_show.innerHTML = comment_show.innerHTML + load_more_button;
+                                    }
+                                    var load_more_button = document.getElementById("load-more-btn");
+                                    load_more_button.addEventListener('click', function () {
+                                        if (current_page <= total_page_number) {
+                                            current_page++;
+                                            loadCommentByPage(current_page, total_page_number);
+                                            console.log("current_page", current_page);
+                                        }
+                                    })
+                                },
+                                error: function (error) {
+                                    console.log("comment load error")
+                                }
+                            })
+                        }
+                        let total_page_number = 0;
+                        let current_page = 0;
+                        window.onload = load_comment = () => {
+                            $.ajax({
+                                type: "GET",
+                                url: "{% url 'comment:load_comment' pk=post.pk %}",
+                                success: function (res) {
+                                    const comment_list = JSON.parse(res.data)
+                                    total_page_number = JSON.parse(res.total_page_number)
+                                    current_page = JSON.parse(res.current_page)
+                                    console.log("total_page_number", total_page_number)
+                                    loadCommentByPage(current_page, total_page_number);
+                                },
+                                error: function (error) {
+                                    console.log("comment load error")
+                                }
+                            })
+                        };
+                    </script>
+                    {% endcomment %}
+                </div>
+            </div>
+        </section>
+    </div>
+    <footer class="py-5 bg-dark">
+        <div class="container">
+            <p class="m-0 text-center text-white">
+                Copyright &copy; Your Website 2021
+            </p>
+        </div>
+    </footer>
+{% endblock content %}
+
+
+{% block script %}
+    <script>
+    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+    var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+        return new bootstrap.Popover(popoverTriggerEl)
+    })
+    var safeContentImages = document.querySelectorAll("#safe-content img");
+    for (var i = 0; i < safeContentImages.length; i++) {
+        if (safeContentImages[i].style.width > "310px") {
+            safeContentImages[i].style.width = "310px";
+            safeContentImages[i].style.height = "auto";
+        }
+    }
+
+
+    let like_count = document.getElementById('like-count');
+    let like_unlike_icon = document.getElementById('like-icon');
+
+    $('#like').click(function () {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'like:post_like' %}",
+            data: {
+                'pk': $(this).attr('name'),
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            dataType: "json",
+            success: function (response) {
+                like_count.innerText = response.likes_count
+                if (response.message == "liked") {
+                    like_unlike_icon.classList.remove('bi-heart')
+                    like_unlike_icon.classList.add('bi-heart-fill')
+                } else if (response.message == "unliked") {
+                    like_unlike_icon.classList.remove('bi-heart-fill')
+                    like_unlike_icon.classList.add('bi-heart')
+                }
+            },
+            error: function (rs, e) {
+                alert(rs.responseText);
+            }
+        });
+        })
+
+
+        let add_remove_icon = document.getElementById("bookmark-icon");
+
+
+        $('#bookmark').click(function () {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'post:bookmark' %}",
+            data: {
+                'pk': $(this).attr('name'),
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            dataType: "json",
+            success: function (response) {
+                if (response.message == "bookmarked") {
+                    add_remove_icon.classList.remove('bi-bookmark')
+                    add_remove_icon.classList.add('bi-bookmark-fill')
+                } else if (response.message == "unbookmarked") {
+                    add_remove_icon.classList.remove('bi-bookmark-fill')
+                    add_remove_icon.classList.add('bi-bookmark')
+                }
+            },
+            error: function (rs, e) {
+                alert(rs.responseText);
+            }
+        });
+        })
+    </script>
+{% endblock script %}

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Are You Sure?{% endblock title %}
+{% block content %}
+    <div class="container my-2">
+        <form method="post">{% csrf_token %}
+            <center><p>Are you sure you want to delete "{{ object.post_title }}"?</p></center>
+            <div class="d-grid gap-2 col-6 mx-auto my-3">
+                <button type="submit" class="btn btn-danger btn-sm">Delete Post</button>
+            </div>
+        </form>
+        <div class="flex-column justify-content-center mx-auto pb-3">
+            <div class="text-center mt-3">
+                <a href="{% url "post:my_blogs" %}" class="btn btn-outline-secondary btn-sm">
+                    Back to My Article
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

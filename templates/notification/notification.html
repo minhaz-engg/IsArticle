@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %} Notifications{% endblock title %}
+{% block content %}
+    <div class="container">
+        <h3 class="my-2">Notification</h3>
+        <div class="dropdown-divider"></div>
+
+
+        {% for notification in notifications %}
+            <div class="card my-2 bg-light">
+                <div class="card-body">
+                    <p>
+
+                        {% if notification.notification_type == 1 %}
+                            <img src="{{ notification.sender.image.url }}" alt="{{ notification.sender.name }}" width="50" height="50">
+                            <a href="{% url 'account:user_profile' slug=notification.sender.account_slug %}" class="text-decoration-none text-black fw-bolder">{{ notification.sender.name }}</a>
+                            Liked Your Post <a href="{% url 'post:post_details' slug=notification.post.slug %}" class="text-decoration-none text-black fw-bold">{{ notification.post.post_title }}</a>
+
+                        
+                        {% elif notification.notification_type == 2 %}
+                            <img src="{{ notification.sender.image.url }}" alt="{{ notification.sender.name }}" width="50" height="50">
+                            <a href="{% url 'account:user_profile' slug=notification.sender.account_slug %}" class="text-decoration-none text-black fw-bolder">{{ notification.sender.name }}</a>
+                            Commented To Your Post <a href="{% url 'post:post_details' slug=notification.post.slug %}" class="text-decoration-none text-black fw-bold">{{ notification.post.post_title }}</a>
+                        
+                        {% elif notification.notification_type == 3 %}
+                            <img src="{{ notification.sender.image.url }}" alt="{{ notification.sender.name }}" width="50" height="50">
+                            <a href="{% url 'account:user_profile' slug=notification.sender.account_slug %}" class="text-decoration-none text-black fw-bolder">{{ notification.sender.name }}</a>
+                            Followed You!
+                        
+                        {% elif notification.notification_type == 4 %}
+                            <div class="fw-bolder">Welcome {{ notification.user.name }} to Our Scientific Article Application!</div>
+                        
+                        {% elif notification.notification_type == 5 %}
+                            Congrtulation! Your Application to be an author has been accepted!
+                        {% elif notification.notification_type == 6 %}
+                            Sorry! Your Application to be an author has been Denied!
+                        {% endif %}
+
+                        &nbsp;&nbsp;&nbsp;&nbsp; <a href="{% url 'notification:delete-notification' notification.id %}"><i class="bi bi-eraser-fill text-danger"></i></a>
+
+                    </p>
+                    <p>{{ notification.date|naturaltime }}</p>
+                </div>
+            </div>
+        {% endfor %}
+
+
+
+
+    </div>
+
+{% endblock content %}

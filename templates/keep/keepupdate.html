@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %} {{ keep.title }}{% endblock title %}
+{% block content %}
+    <div class="container">
+        <h2 class="text-center mt-3">Edit your Note</h2>
+        <form action="" method="post">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <div class="d-grid gap-2 col-6 mx-auto my-3">
+                <button type="submit" class="btn btn-success">Create</button>
+            </div>
+        </form>
+        <div class="flex-column justify-content-center mx-auto pb-3">
+            <div class="text-center mt-3">
+                <a href="{% url "keep:keep_detail" keep.pk %}" class="btn btn-outline-secondary btn-sm mt-1">
+                    Go back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

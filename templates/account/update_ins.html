@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block style %}
+    
+{% endblock style %}
+
+{% block title %} Education | Update {% endblock title %}
+{% block content %}
+    <div class="container">
+        <form action="" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <div class="d-grid gap-2 col-6 mx-auto my-3">
+                <button type="submit" class="btn btn-primary btn-sm">Update</button>
+            </div>
+        </form>
+        <div class="flex-column justify-content-center mx-auto pb-3">
+            <div class="text-center mt-3">
+                <a href="{% url 'account:institution_list' %}" class="btn btn-outline-secondary btn-sm">
+                    Back to Education
+                </a>
+            </div>
+        </div>
+    </div>
+    <footer class="py-5 bg-dark">
+        <div class="container">
+            <p class="m-0 text-center text-white">Copyright &copy; Your Website 2021</p>
+        </div>
+    </footer>
+{% endblock content %}

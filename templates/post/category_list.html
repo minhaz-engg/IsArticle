@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Category List{% endblock title %}
+{% block content %}
+    <div class="container">
+        <h2>Subscribe Category to show right article</h2>
+        <hr class="dropdown-divider">
+        <div class="my-2">
+            {% for category in all_category %}
+                <a href="{% url 'post:category_based_list' category.slug %}" class="btn {% if category.id in my_subscribed_category_ids %} btn-success {% else %} btn-outline-success {% endif %} btn-sm m-1">{{ category.name }}</a>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock content %}

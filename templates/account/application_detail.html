@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %} {{ application.user.name }}{% endblock title %}
+{% block content %}
+    <div class="container">
+        <h2>APPLICATION DETAILS</h2>
+        <a href="{% url 'account:user_profile' slug=application.user.account_slug %}" class="text-decoration-none text-black fw-bolder">{{ application.user.name }}</a>
+
+        <a href="{% url 'account:author_application_accept' application.pk %}" class="btn btn-success btn-sm">Accept</a>
+        <a href="{% url 'account:author_application_delete' application.pk %}" class="btn btn-danger btn-sm">Delete</a>
+        <a href="{% url 'account:author_application_list' %}" class="btn btn-secondary btn-sm">Back</a>
+        
+        <p>{{ application.description }}</p>
+    </div>
+{% endblock content %}
